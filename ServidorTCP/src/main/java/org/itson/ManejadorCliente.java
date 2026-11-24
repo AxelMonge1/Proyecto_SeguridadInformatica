@@ -46,21 +46,39 @@ public class ManejadorCliente implements Runnable {
     }
 
     private boolean ejecutarInicioSesion(BufferedReader entrada, PrintWriter salida) throws IOException {
-        salida.println("Ingresa tu nombre de usuario:");
-        String alias = entrada.readLine();
-        if (alias == null) {
-            return false;
+        String linea;
+        while ((linea = entrada.readLine()) != null) {
+            if (linea.equalsIgnoreCase("/SALIR")) {
+                return false;
+            }
+            if (linea.startsWith("LOGIN|")) {
+                String[] partes = linea.split("\\|");
+                if (partes.length == 3) {
+                    String user = partes[1];
+                    String pass = partes[2];
+                    String resultado = ServidorTCP.validarLogin(user, pass);
+                    if (resultado.equals("OK")) {
+                        sesion.setNombreUsuario(user);
+                        sesion.setAutenticado(true);
+                        System.out.println("Usuario autenticado: " + user);
+                        salida.println("LOGIN_OK:Bienvenido, " + user);
+                        return true;
+                    } else {
+                        salida.println("LOGIN_ERROR:" + resultado);
+                    }
+                }
+            }
         }
-        sesion.setNombreUsuario(alias);
-        //Aqui se va a validar la contraseña
-        sesion.setAutenticado(true);
-        return true;
+        return false;
     }
 
     private void cerrarConexion() {
         try {
             socket.close();
-        } catch (IOException ignored) {}
+        } catch (IOException e) {}
+        if (sesion.isAutenticado()) {
+            ServidorTCP.liberarUsuario(sesion.getNombreUsuario());
+        }
         int restantes = conexionesActivas.decrementAndGet();
         System.out.println("Cliente desconectado (" + sesion.getNombreUsuario() + ")");
     }
