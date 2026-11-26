@@ -11,13 +11,23 @@ package org.itson;
 public class Usuario {
     private String nombre;
     private String contrasenia;
+    private boolean esAdmin;
 
     public Usuario() {
     }
 
-    public Usuario(String nombre, String contrasenia) {
+    public Usuario(String nombre, String contrasenia, boolean esAdmin) {
         this.nombre = nombre;
         this.contrasenia = contrasenia;
+        this.esAdmin = esAdmin;
+    }
+
+    public boolean isAdmin() {
+        return esAdmin;
+    }
+
+    public void setAdmin(boolean esAdmin) {
+        this.esAdmin = esAdmin;
     }
 
     public String getNombre() {

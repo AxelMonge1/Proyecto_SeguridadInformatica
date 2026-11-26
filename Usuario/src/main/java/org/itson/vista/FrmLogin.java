@@ -7,7 +7,6 @@ package org.itson.vista;
 import java.io.IOException;
 import javax.swing.JOptionPane;
 import listener.ListenerServidor;
-import org.itson.Usuario;
 import org.itson.UsuarioTCP;
 
 /**
@@ -99,7 +98,7 @@ public class FrmLogin extends javax.swing.JFrame implements ListenerServidor{
         // TODO add your handling code here:
         String usuario = txtUsuario.getText().trim();
         String contrasenia = txtContrasenia.getText();
-        if(!usuario.matches("^[a-zA-Z]{5,15}$")){
+        if(!usuario.matches("^[a-zA-Z ]{5,15}$")){
             JOptionPane.showMessageDialog(this, "Formato de usuario incorrecto");
             return; 
         }
@@ -114,7 +113,6 @@ public class FrmLogin extends javax.swing.JFrame implements ListenerServidor{
                 this.usuarioTCP.conectar(this);
             }
             this.usuarioTCP.enviarCredenciales(usuario, contrasenia);
-            onLoginExitoso("");
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "No se pudo conectar al servidor: " + ex.getMessage(), "Error de red", JOptionPane.ERROR_MESSAGE);
             btnIniciarSesion.setEnabled(true);
@@ -155,14 +153,23 @@ public class FrmLogin extends javax.swing.JFrame implements ListenerServidor{
     // End of variables declaration//GEN-END:variables
 
     @Override
-    public void onLoginExitoso(String mensaje) {
-        JOptionPane.showMessageDialog(this, "Sesion iniciada correctamente");
+    public void onLoginExitoso(String mensaje, boolean esAdmin) {
+        JOptionPane.showMessageDialog(this, mensaje);
         btnIniciarSesion.setEnabled(false);
+        if(esAdmin){
+            JOptionPane.showMessageDialog(this, "Bienvenido administrador");
+        }else{
+            JOptionPane.showMessageDialog(this, "Bienvenido usuario");
+        }
+        this.dispose();
     }
 
     @Override
     public void onLoginFallido(String motivo) {
         JOptionPane.showMessageDialog(this, motivo, "Acceso denegado", JOptionPane.WARNING_MESSAGE);
+        if(motivo.contains("sesión activa")){
+            this.usuarioTCP = null;
+        }
         btnIniciarSesion.setEnabled(true);
     }
 

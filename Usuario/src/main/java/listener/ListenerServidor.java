@@ -9,7 +9,7 @@ package listener;
  * @author axelm
  */
 public interface ListenerServidor {
-    void onLoginExitoso(String mensaje);
+    void onLoginExitoso(String mensaje, boolean esAdmin);
     void onLoginFallido(String motivo);
     void onErrorConexion(String error);
 }

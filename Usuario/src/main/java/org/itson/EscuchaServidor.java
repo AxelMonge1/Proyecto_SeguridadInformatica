@@ -6,11 +6,11 @@ import javax.swing.SwingUtilities;
 import listener.ListenerServidor;
 
 public class EscuchaServidor implements Runnable {
-    private final BufferedReader entradaServidor;
+    private final BufferedReader entrada;
     private final ListenerServidor listener;
 
-    public EscuchaServidor(BufferedReader entradaServidor, ListenerServidor listener) {
-        this.entradaServidor = entradaServidor;
+    public EscuchaServidor(BufferedReader entrada, ListenerServidor listener) {
+        this.entrada = entrada;
         this.listener = listener;
     }
 
@@ -18,23 +18,22 @@ public class EscuchaServidor implements Runnable {
     public void run() {
         try {
             String respuesta;
-            while ((respuesta = entradaServidor.readLine()) != null) {
+            while ((respuesta = entrada.readLine()) != null) {
                 final String msg = respuesta;
-
-                SwingUtilities.invokeLater(() -> {
-                    if (msg.startsWith("LOGIN_OK:")) {
-                        listener.onLoginExitoso(msg.replace("LOGIN_OK:", ""));
-                    } else if (msg.startsWith("LOGIN_ERROR:")) {
-                        listener.onLoginFallido(msg.replace("LOGIN_ERROR:", ""));
-                    } else if (msg.startsWith("ERROR:")) {
-                        listener.onErrorConexion(msg.replace("ERROR:", ""));
+                if (respuesta.startsWith("LOGIN_OK|")) {
+                    String[] partes = respuesta.split("\\|", 3);
+                    if (partes.length == 3) {
+                        boolean esAdmin = partes[1].equals("ADMIN");
+                        String textoBienvenida = partes[2];
+                        SwingUtilities.invokeLater(() -> listener.onLoginExitoso(textoBienvenida, esAdmin));
                     }
-                });
+                } else if (respuesta.startsWith("LOGIN_ERROR:")) {
+                    String motivo = respuesta.substring("LOGIN_ERROR:".length());
+                    SwingUtilities.invokeLater(() -> listener.onLoginFallido(motivo));
+                }
             }
         } catch (IOException e) {
-            SwingUtilities.invokeLater(() -> 
-                listener.onErrorConexion("Se perdió la conexión con el servidor.")
-            );
+            SwingUtilities.invokeLater(() -> listener.onErrorConexion("Se perdió la conexión con el servidor."));
         }
     }
 }

@@ -57,14 +57,18 @@ public class ManejadorCliente implements Runnable {
                     String user = partes[1];
                     String pass = partes[2];
                     String resultado = ServidorTCP.validarLogin(user, pass);
-                    if (resultado.equals("OK")) {
+
+                    if (resultado.equals("OK_ADMIN") || resultado.equals("OK_USER")) {
                         sesion.setNombreUsuario(user);
                         sesion.setAutenticado(true);
-                        System.out.println("Usuario autenticado: " + user);
-                        salida.println("LOGIN_OK:Bienvenido, " + user);
+                        String rol = resultado.equals("OK_ADMIN") ? "ADMIN" : "USER";
+                        salida.println("LOGIN_OK|" + rol + "|Bienvenido, " + user);
                         return true;
                     } else {
                         salida.println("LOGIN_ERROR:" + resultado);
+                        if (resultado.contains("sesión activa")) {
+                            return false;
+                        }
                     }
                 }
             }
